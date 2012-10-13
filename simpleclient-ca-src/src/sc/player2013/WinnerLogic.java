@@ -1,7 +1,9 @@
 package sc.player2013;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 import sc.plugin2013.BackwardMove;
@@ -56,7 +58,21 @@ public class WinnerLogic implements IGameHandler {
 
 		System.out.println("*** Das Spiel ist beendet");
 	}
-
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public int getFirstPirateFieldIndex() {
+		int result = 0;
+		for (int k = 0; k < gameState.getBoard().size(); k++) {
+			if (gameState.getBoard().getField(k).numPirates(gameState.getCurrentPlayerColor()) > 0) {
+				result = k;	
+				break;
+			}
+		}
+		return result;
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -68,6 +84,15 @@ public class WinnerLogic implements IGameHandler {
 		for (int i = 0; i < 3; i++) {
 			// Liste der verfügbaren Züge
 			LinkedList<Move> possibleMoves = (LinkedList<Move>) gameState.getPossibleMoves();
+			List<ForwardMove> possibleForwardMoves = new ArrayList<ForwardMove>();
+			List<BackwardMove> possibleBackwardMoves = new ArrayList<BackwardMove>();
+			for (Move m: possibleMoves) {
+				if (m.getClass().equals(ForwardMove.class)) {
+					possibleForwardMoves.add((ForwardMove) m);
+				} else if (m.getClass().equals(BackwardMove.class)) {
+					possibleBackwardMoves.add((BackwardMove) m);
+				}
+			}
 			System.out.println("*** Anzahl der möglichen Züge:"
 					+ possibleMoves.size());
 			
@@ -75,29 +100,26 @@ public class WinnerLogic implements IGameHandler {
 			
 			// Wenn es mögliche Züge gibt:
 			if (possibleMoves.size() > 0) {
-				if (currentPlayer.getCards().size() <= 1) {
+				if (gameState.getCurrentPlayer().getCards().size() <= 1) {
 					for (int k = gameState.getBoard().size(); k > 0; k--) {
-						Field pirate_field = gameState.getBoard().getField(k);
+						System.out.println("Size:" + k);
+						Field pirate_field = gameState.getBoard().getField(k-1);
 						if (pirate_field.numPirates(gameState.getCurrentPlayerColor()) > 0) {
-							move = new BackwardMove(k);	
+							move = new BackwardMove(k-1);
+							break;
 						}
 					}
 					
 					
 				} else {
-					
-					int biggest_index = 0;
-	            
-	            	for (Move m: possibleMoves) {
-	            		if (m.fieldIndex > biggest_index) {
-	            			biggest_index = m.fieldIndex;
-	            		}
-	            	}
-	            	for (Move m: possibleMoves) {
-	            		if (m.fieldIndex == biggest_index) {
-	            			move = (ForwardMove) m;
-	            		}
-	            	}
+					int k = getFirstPirateFieldIndex();
+					System.out.println("K = " + k);
+					for (Move m: possibleForwardMoves) {
+						if (m.fieldIndex == k) {
+							move = (ForwardMove) m;
+							break;
+						}	
+					}
 				}	
 
 			} else {
