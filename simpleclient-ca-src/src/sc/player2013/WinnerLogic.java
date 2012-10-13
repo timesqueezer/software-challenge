@@ -13,6 +13,7 @@ import sc.plugin2013.GameState;
 import sc.plugin2013.IGameHandler;
 import sc.plugin2013.Move;
 import sc.plugin2013.MoveContainer;
+import sc.plugin2013.Pirate;
 import sc.plugin2013.Player;
 import sc.plugin2013.PlayerColor;
 import sc.plugin2013.util.InvalidMoveException;
@@ -62,27 +63,43 @@ public class WinnerLogic implements IGameHandler {
 	@Override
 	public void onRequestAction() {
 		System.out.println("*** Es wurde ein Zug angefordert");
-		Field field = new Field(FieldType.START);
 		MoveContainer moveC = new MoveContainer();
 		// Schleife die 3 mal durchlaufen wird. i wird jedes mal erhöht
 		for (int i = 0; i < 3; i++) {
 			// Liste der verfügbaren Züge
-			LinkedList<Move> possibleMoves = (LinkedList<Move>) gameState
-					.getPossibleMoves();
+			LinkedList<Move> possibleMoves = (LinkedList<Move>) gameState.getPossibleMoves();
 			System.out.println("*** Anzahl der möglichen Züge:"
 					+ possibleMoves.size());
-			Move move;
+			
+			Move move = null;
 			
 			// Wenn es mögliche Züge gibt:
 			if (possibleMoves.size() > 0) {
-            
-                if (field.numPirates(gameState.getCurrentPlayerColor()) > 0) {
-				
-				
-                }
-				// Create move
-                
-                
+				if (currentPlayer.getCards().size() <= 1) {
+					for (int k = gameState.getBoard().size(); k > 0; k--) {
+						Field pirate_field = gameState.getBoard().getField(k);
+						if (pirate_field.numPirates(gameState.getCurrentPlayerColor()) > 0) {
+							move = new BackwardMove(k);	
+						}
+					}
+					
+					
+				} else {
+					
+					int biggest_index = 0;
+	            
+	            	for (Move m: possibleMoves) {
+	            		if (m.fieldIndex > biggest_index) {
+	            			biggest_index = m.fieldIndex;
+	            		}
+	            	}
+	            	for (Move m: possibleMoves) {
+	            		if (m.fieldIndex == biggest_index) {
+	            			move = (ForwardMove) m;
+	            		}
+	            	}
+				}	
+
 			} else {
 				move = null;
 			}

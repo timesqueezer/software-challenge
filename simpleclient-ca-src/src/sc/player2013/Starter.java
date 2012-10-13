@@ -20,7 +20,7 @@ public class Starter extends AbstractClient {
 		super(host, port);
 
 		/** Hier wird die zu verwendende Strategie eingetragen.*/
-		IGameHandler logic = new RandomLogic(this);		
+		IGameHandler logic = new WinnerLogic(this);		
 		setHandler(logic);
 
 		// einem spiel beitreten
