@@ -118,6 +118,11 @@ public class SonjaLogic implements IGameHandler {
 		return same_field;
 	}
 
+	public int numPiratesOnAField (int index) {
+		int index1 = gameState.getBoard().numPiratesOf(index, gameState.getCurrentPlayerColor())
+				+ gameState.getBoard().numPiratesOf(index, gameState.getOtherPlayerColor());
+		return index1;		
+	}
 	
 	/**
 	 * {@inheritDoc}
@@ -150,17 +155,35 @@ public class SonjaLogic implements IGameHandler {
 			// Wenn es mögliche Züge gibt:
 			if (possibleMoves.size() > 0) {
 				if (gameState.getCurrentPlayer().getCards().size() <= 1) {
+					boolean goOn = true;
 					for (int k = gameState.getBoard().size(); k > 2; k--) {
 						System.out.println("Size:" + k);
 						Field pirate_field = gameState.getBoard().getField(k-1);
 						if (pirate_field.numPirates(gameState.getCurrentPlayerColor()) > 0) {
-							Field destination = gameState.getBoard().getField(gameState.getBoard().getPreviousField(k-1));
-							if (bMoveInSameFieldArea(pirate_field, destination)) {
-								move = new BackwardMove(k-1);
-								break;
-							} 
+							if (gameState.getBoard().getPreviousField(k-1) > 0) {
+								Field destination = gameState.getBoard().getField(gameState.getBoard().getPreviousField(k-1));
+								if (bMoveInSameFieldArea(pirate_field, destination)) {
+									if (goOn) {
+										if (numPiratesOnAField(gameState.getBoard().getPreviousField(k-1)) == 2) {
+											move = new BackwardMove(k-1);
+											System.out.println("BackwardMove = auf Feld mit 2 Piraten");
+											break;
+										}
+									} else {
+										move = new BackwardMove(k-1);
+										System.out.println("BackwardMove = innerhalb eines Segments");
+										break;
+									}
+								}
+							}	
 						}	
-						if (k == 3) {
+						if (k == 3 && goOn) {
+							System.out.println("kein BackwardMove auf ein Feld mit 2 Piraten gefunden");
+							k = gameState.getBoard().size()+1;
+							goOn = false;
+						}
+						if (k == 3 && !goOn) {
+							System.out.println("zuf�lliger BackwardMove");
 							move = possibleBackwardMoves.get(rand.nextInt(possibleBackwardMoves.size()));
 							move = (BackwardMove) move;
 							break;
